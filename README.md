@@ -3,7 +3,7 @@ A lexical analyzer and a parser
 
 -------------------------------------------------
 
-How it works:
+How it works: \n
 1)Create a txt file with arithmetic expressions
 2)Change the Runner to its path
 3)The lexer will split the expression into tokens
