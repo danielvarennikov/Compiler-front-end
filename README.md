@@ -15,4 +15,6 @@ What it is currently capable of:
 1)Working with regular arithmetic expressions
 2)Working with if statements of the following type -> if(5 - 2 == 3){ + 2}
 
+-------------------------------------------------
+
 Feel free to use and ask me questions about it :)
