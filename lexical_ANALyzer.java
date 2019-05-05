@@ -6,9 +6,9 @@ import java.util.LinkedList;
 public class lexical_ANALyzer {
 	 static LinkedList<Token<Type, String>> tokens = new LinkedList<>();
     
-//The types the lexer currently knows how to handle
+//The types the lexer currently knows how to handle 
     public static enum Type {
-        ADD, SUBTRACT, MULTIPLY, DIVIDE, REMAINDER, OPERAND, STRING, CHARACTER, BOOLEAN ,INTEGER 
+        ADD, SUBTRACT, MULTIPLY, DIVIDE, REMAINDER, OPERAND, STRING, CHARACTER, BOOLEAN ,INTEGER ,ASSIGNMENT ,SEMICOLON, LITERAL ,OPENBRACKET ,CLOSEBRACKET ,EVAL
     }
     
     
@@ -352,6 +352,16 @@ public class lexical_ANALyzer {
     	return i;
     }
     
+    private static int evaluateLiteral(String expression,int index) {
+    	int i=index;
+    	String theLiteral="";
+    	while(!Character.isWhitespace(expression.charAt(i))) {
+    		theLiteral=theLiteral+expression.charAt(i);
+    		i = i+1;
+    	}
+    	tokens.add(new Token<>(Type.LITERAL, theLiteral));
+    	return i;
+    }
     
     /**
      * Lexically analyzes the expression
@@ -361,6 +371,9 @@ public class lexical_ANALyzer {
     public static LinkedList<Token<Type, String>> analyze(String expression) {
         for(int i = 0; i < expression.length(); ) {
             char currentCharacter = expression.charAt(i);
+        if(Character.isWhitespace(currentCharacter)) {
+                i++;
+                }else {
             switch(currentCharacter) {
                 case '+':
                     tokens.add(new Token<>(Type.ADD, String.valueOf(currentCharacter)));
@@ -406,31 +419,53 @@ public class lexical_ANALyzer {
                 	if(expression.charAt(i+1)=='f') {
                 			i=i+2;
                 			i=lexical_ANALyzer.evaluateCondition(expression, i);  
+                			break;
                        }else if(expression.charAt(i+1) == 'n' & expression.charAt(i+2) == 't') {
                     	   i=i+3;
-                    	   i=lexical_ANALyzer.evaluateInteger(expression, i);  		
-                       }
-                	             	
-                	break;
+                    	   i=lexical_ANALyzer.evaluateInteger(expression, i);  
+                    	  break; 
+                       }          	
                 case 's':
                 	if(expression.charAt(i+1)=='t' & expression.charAt(i+2)=='r') {
                 		i=lexical_ANALyzer.evaluateString(expression, i+3);
+                		break;
                 	}
-                	break;
                 case 'c':
                 	if(expression.charAt(i+1) == 'h' && expression.charAt(i+2) == 'a' && expression.charAt(i+3) == 'r') {
                 		i=lexical_ANALyzer.evaluateChar(expression, i+4);
+                		break;
                 	}
-                	break;
                 case 'b':
                 	if(expression.charAt(i+1) == 'o' && expression.charAt(i+2) == 'o' && expression.charAt(i+3) == 'l') {
                 		i=lexical_ANALyzer.evaluateBoolean(expression, i+4);
+                		break;
                 	}
+                case '=':
+                	if(expression.charAt(i+1) == '=') {
+                		tokens.add(new Token<>(Type.EVAL, "=="));
+                		i = i+2;
+                		break;
+                	}else {
+                		tokens.add(new Token<>(Type.ASSIGNMENT, "="));
+                		i = i+1;
                 	break;
+                	}
+                case ';':
+                	tokens.add(new Token<>(Type.SEMICOLON, ";"));
+                	i = i+1;
+                	break;
+                case '(':
+                	tokens.add(new Token<>(Type.OPENBRACKET, "("));
+                	i = i+1;
+                	break;
+                case ')':
+                	tokens.add(new Token<>(Type.CLOSEBRACKET, ")"));
+                	i = i+1;
+                	break;	
                 default:
-                    if(Character.isWhitespace(currentCharacter)) {
-                        i++;
-                    }
+                   i=lexical_ANALyzer.evaluateLiteral(expression, i);
+                   break;
+            	}
             }
         }
         return tokens;
