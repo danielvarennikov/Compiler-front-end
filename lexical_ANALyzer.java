@@ -8,7 +8,7 @@ public class lexical_ANALyzer {
     
 //The types the lexer currently knows how to handle
     public static enum Type {
-        ADD, SUBTRACT, MULTIPLY, DIVIDE, REMAINDER, OPERAND 
+        ADD, SUBTRACT, MULTIPLY, DIVIDE, REMAINDER, OPERAND, STRING, CHARACTER 
     }
     
     
@@ -157,6 +157,101 @@ public class lexical_ANALyzer {
     	return i;
     }
 
+    private static int evaluateString(String expression,int index) {
+    	int i=index;
+    	String strName="";
+    	String evaluation="";
+    	boolean nullString=false;
+    	
+    	//Get the name of the String
+    	while(expression.charAt(i) != '=' & nullString == false) {
+    		if(expression.charAt(i) == ';') {
+    			nullString = true;
+    		}else if(!Character.isWhitespace(expression.charAt(i))) {
+    			strName=strName+expression.charAt(i);
+    			i = i+1;
+    		}else {
+    			i = i+1;
+    		}
+    	}
+    	i=i+1;
+    	
+    	//Get the evaluation of the String if it is not null
+    	if(nullString == false) {
+    	
+    	boolean hasValue=false;
+    	boolean started=false;
+    	
+    	while(expression.charAt(i)!= ';') {
+    		if(expression.charAt(i) == '"') {
+    			
+    			if(started == false) {
+    				started = true;	
+    				i = i+1;
+    			}else {
+    				hasValue=true;
+    				i = i+1;
+    			}
+    			
+    		}else if(started == true & hasValue == false) {
+    			evaluation = evaluation + expression.charAt(i);
+    			i = i+1;
+    		}else {
+    			i = i+1;
+    		}
+    		
+    	}
+    	i = i+1;
+    	
+    	tokens.add(new Token<>(Type.STRING,strName+"$"+evaluation));
+    		
+    	}else {
+    		tokens.add(new Token<>(Type.STRING,strName+"$NULL"));
+    	}
+    	
+    	return i;
+    }
+    
+    private static int evaluateChar(String expression,int index) {
+    	int i=index;
+    	String charName="";
+    	char evaluation='-';
+    	boolean nullChar=false;
+    	
+    	//Get the name of the Char
+    	while(expression.charAt(i) != '=' & nullChar == false) {
+    		if(expression.charAt(i) == ';') {
+    			nullChar = true;
+    		}else if(!Character.isWhitespace(expression.charAt(i))) {
+    			charName=charName+expression.charAt(i);
+    			i = i+1;
+    		}else {
+    			i = i+1;
+    		}
+    	}
+    	i=i+1;
+    	
+    	//Get the evaluation of the Char if it is not null
+    	if(nullChar == false) {
+    	while(expression.charAt(i)!= ';') {
+    		if(Character.isWhitespace(expression.charAt(i))) {
+    			i = i+1;
+    		}else {
+    			evaluation = expression.charAt(i);
+    			i = i+1;
+    		}
+    			
+    	}
+    	i = i+1;
+    	tokens.add(new Token<>(Type.CHARACTER,charName+"$"+evaluation));
+    		
+    	}else {
+    		tokens.add(new Token<>(Type.CHARACTER,charName+"$NULL"));
+    	}
+    	
+    	
+    	return i;
+    }
     
     private static int skipComment(String expression,int index) {
     	int i=index+2;
@@ -166,6 +261,9 @@ public class lexical_ANALyzer {
     	return i+2;
     	
     }
+    
+    
+    
     /**
      * Lexically analyzes the expression
      * @param expression The expression to be analyzed
@@ -221,6 +319,16 @@ public class lexical_ANALyzer {
                        }
                 	
                 	i=lexical_ANALyzer.evaluateCondition(expression, i);               	
+                	break;
+                case 's':
+                	if(expression.charAt(i+1)=='t' & expression.charAt(i+2)=='r') {
+                		i=lexical_ANALyzer.evaluateString(expression, i+3);
+                	}
+                	break;
+                case 'c':
+                	if(expression.charAt(i+1) == 'h' && expression.charAt(i+2) == 'a' && expression.charAt(i+3) == 'r') {
+                		i=lexical_ANALyzer.evaluateChar(expression, i+4);
+                	}
                 	break;
                 default:
                     if(Character.isWhitespace(currentCharacter)) {
