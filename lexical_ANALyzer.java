@@ -8,7 +8,7 @@ public class lexical_ANALyzer {
     
 //The types the lexer currently knows how to handle
     public static enum Type {
-        ADD, SUBTRACT, MULTIPLY, DIVIDE, REMAINDER, OPERAND, STRING, CHARACTER, BOOLEAN 
+        ADD, SUBTRACT, MULTIPLY, DIVIDE, REMAINDER, OPERAND, STRING, CHARACTER, BOOLEAN ,INTEGER 
     }
     
     
@@ -304,6 +304,55 @@ public class lexical_ANALyzer {
     	return i;
     }
     
+    private static int evaluateInteger(String expression,int index) {
+    	int i=index;
+    	String intName="";
+    	String evaluation="";
+    	boolean nullInt=false;
+    	
+    	//Get the name of the Integer
+    	while(expression.charAt(i) != '=' & nullInt == false) {
+    		if(expression.charAt(i) == ';') {
+    			nullInt = true;
+    		}else if(!Character.isWhitespace(expression.charAt(i))) {
+    			intName=intName+expression.charAt(i);
+    			i = i+1;
+    		}else {
+    			i = i+1;
+    		}
+    	}
+    	i=i+1;
+    	
+    	//Get the evaluation of the Integer if it is not null
+    	boolean first=false;
+    	if(nullInt == false) {
+    	while(expression.charAt(i)!= ';') {
+    		if(Character.isWhitespace(expression.charAt(i))) {
+    			i = i+1;
+    		}else if(expression.charAt(i) == '-' & !first) {
+    			first=true;
+    			evaluation = evaluation + expression.charAt(i);
+    			i = i+1;
+    		}else if(expression.charAt(i)-'0'>=0 & '9'-expression.charAt(i)>=0){
+    			first=true;
+    			evaluation = evaluation + expression.charAt(i);
+    			i = i+1;
+    		}
+    			
+    	}
+    	i = i+1;
+    	
+    		tokens.add(new Token<>(Type.INTEGER,intName+"$"+evaluation));
+    		
+    	}else {
+    		tokens.add(new Token<>(Type.INTEGER,intName+"$NULL"));
+    	}
+    	
+    	
+    	return i;
+    }
+    
+    
     /**
      * Lexically analyzes the expression
      * @param expression The expression to be analyzed
@@ -355,10 +404,13 @@ public class lexical_ANALyzer {
                     break;
                 case 'i':
                 	if(expression.charAt(i+1)=='f') {
-                		i=i+2;
+                			i=i+2;
+                			i=lexical_ANALyzer.evaluateCondition(expression, i);  
+                       }else if(expression.charAt(i+1) == 'n' & expression.charAt(i+2) == 't') {
+                    	   i=i+3;
+                    	   i=lexical_ANALyzer.evaluateInteger(expression, i);  		
                        }
-                	
-                	i=lexical_ANALyzer.evaluateCondition(expression, i);               	
+                	             	
                 	break;
                 case 's':
                 	if(expression.charAt(i+1)=='t' & expression.charAt(i+2)=='r') {

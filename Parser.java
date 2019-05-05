@@ -34,7 +34,7 @@ LinkedList<Token> tokens;
             t = (Token) tokens.get(i);
             if (t.getType().equals(Type.OPERAND)) {
                 postfix.add(t);
-            }else if(t.getType().equals(Type.STRING) | t.getType().equals(Type.CHARACTER) | t.getType().equals(Type.BOOLEAN)){
+            }else if(t.getType().equals(Type.STRING) | t.getType().equals(Type.CHARACTER) | t.getType().equals(Type.BOOLEAN) | t.getType().equals(Type.INTEGER)){
             	postfix.add(t);
             }else {
                 if (!stack.isEmpty() && getPrecedence(t) <= getPrecedence(stack.peek())) {
