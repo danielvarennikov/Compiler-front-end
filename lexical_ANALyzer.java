@@ -8,7 +8,7 @@ public class lexical_ANALyzer {
     
 //The types the lexer currently knows how to handle
     public static enum Type {
-        ADD, SUBTRACT, MULTIPLY, DIVIDE, REMAINDER, OPERAND, STRING, CHARACTER 
+        ADD, SUBTRACT, MULTIPLY, DIVIDE, REMAINDER, OPERAND, STRING, CHARACTER, BOOLEAN 
     }
     
     
@@ -262,7 +262,47 @@ public class lexical_ANALyzer {
     	
     }
     
-    
+    private static int evaluateBoolean(String expression,int index) {
+    	int i=index;
+    	String boolName="";
+    	String evaluation="";
+    	boolean nullBool=false;
+    	
+    	//Get the name of the Boolean
+    	while(expression.charAt(i) != '=' & nullBool == false) {
+    		if(expression.charAt(i) == ';') {
+    			nullBool = true;
+    		}else if(!Character.isWhitespace(expression.charAt(i))) {
+    			boolName=boolName+expression.charAt(i);
+    			i = i+1;
+    		}else {
+    			i = i+1;
+    		}
+    	}
+    	i=i+1;
+    	
+    	//Get the evaluation of the Boolean if it is not null
+    	if(nullBool == false) {
+    	while(expression.charAt(i)!= ';') {
+    		if(Character.isWhitespace(expression.charAt(i))) {
+    			i = i+1;
+    		}else {
+    			evaluation = evaluation + expression.charAt(i);
+    			i = i+1;
+    		}
+    			
+    	}
+    	i = i+1;
+    	if(evaluation.equals("true") | evaluation.equals("false")) {
+    		tokens.add(new Token<>(Type.BOOLEAN,boolName+"$"+evaluation));
+    		}
+    	}else {
+    		tokens.add(new Token<>(Type.BOOLEAN,boolName+"$NULL"));
+    	}
+    	
+    	
+    	return i;
+    }
     
     /**
      * Lexically analyzes the expression
@@ -328,6 +368,11 @@ public class lexical_ANALyzer {
                 case 'c':
                 	if(expression.charAt(i+1) == 'h' && expression.charAt(i+2) == 'a' && expression.charAt(i+3) == 'r') {
                 		i=lexical_ANALyzer.evaluateChar(expression, i+4);
+                	}
+                	break;
+                case 'b':
+                	if(expression.charAt(i+1) == 'o' && expression.charAt(i+2) == 'o' && expression.charAt(i+3) == 'l') {
+                		i=lexical_ANALyzer.evaluateBoolean(expression, i+4);
                 	}
                 	break;
                 default:
