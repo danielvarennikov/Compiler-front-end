@@ -82,10 +82,7 @@ LinkedList<Token> tokens;
     		
     		if(theToken.charAt(i) == ',') {
     			started=true;
-    			i = i+1;
-    		}
-    		
-    		if(theToken.charAt(i) == '$' | theToken.charAt(i) == '>') {
+    		}else if(theToken.charAt(i) == '$' | theToken.charAt(i) == '>') {
     			finished = true;
     		}else if(started == true) {
     			name = name + theToken.charAt(i);

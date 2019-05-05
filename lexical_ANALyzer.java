@@ -355,7 +355,7 @@ public class lexical_ANALyzer {
     private static int evaluateLiteral(String expression,int index) {
     	int i=index;
     	String theLiteral="";
-    	while(!Character.isWhitespace(expression.charAt(i))) {
+    	while(!Character.isWhitespace(expression.charAt(i)) & expression.charAt(i)!=';') {
     		theLiteral=theLiteral+expression.charAt(i);
     		i = i+1;
     	}
@@ -424,28 +424,40 @@ public class lexical_ANALyzer {
                     	   i=i+3;
                     	   i=lexical_ANALyzer.evaluateInteger(expression, i);  
                     	  break; 
-                       }          	
+                       }else {
+                    	   i=lexical_ANALyzer.evaluateLiteral(expression, i);
+                           break;
+                       }
                 case 's':
                 	if(expression.charAt(i+1)=='t' & expression.charAt(i+2)=='r') {
                 		i=lexical_ANALyzer.evaluateString(expression, i+3);
                 		break;
+                	}else {
+                		i=lexical_ANALyzer.evaluateLiteral(expression, i);
+                        break;
                 	}
                 case 'c':
                 	if(expression.charAt(i+1) == 'h' && expression.charAt(i+2) == 'a' && expression.charAt(i+3) == 'r') {
                 		i=lexical_ANALyzer.evaluateChar(expression, i+4);
                 		break;
+                	}else {
+                		i=lexical_ANALyzer.evaluateLiteral(expression, i);
+                        break;
                 	}
                 case 'b':
                 	if(expression.charAt(i+1) == 'o' && expression.charAt(i+2) == 'o' && expression.charAt(i+3) == 'l') {
                 		i=lexical_ANALyzer.evaluateBoolean(expression, i+4);
                 		break;
+                	}else {
+                		i=lexical_ANALyzer.evaluateLiteral(expression, i);
+                        break;
                 	}
                 case '=':
                 	if(expression.charAt(i+1) == '=') {
                 		tokens.add(new Token<>(Type.EVAL, "=="));
                 		i = i+2;
                 		break;
-                	}else {
+                	}else if(currentCharacter == '='){
                 		tokens.add(new Token<>(Type.ASSIGNMENT, "="));
                 		i = i+1;
                 	break;
