@@ -27,6 +27,8 @@ What it is currently capable of:
 
 5)Working with Characters of the following type -> char ENTER_CHARACTER_NAME = ENTER_CHAR_VALUE ;
 
+6)Working with boolean variables of the following type -> bool ENTER_BOOLEAN_NAME = true/false;
+
 -------------------------------------------------
 
 Feel free to use and ask me questions about it :)
