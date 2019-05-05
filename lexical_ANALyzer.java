@@ -8,7 +8,7 @@ public class lexical_ANALyzer {
     
 //The types the lexer currently knows how to handle
     public static enum Type {
-        ADD, SUBTRACT, MULTIPLY, DIVIDE, REMAINDER, OPERAND
+        ADD, SUBTRACT, MULTIPLY, DIVIDE, REMAINDER, OPERAND 
     }
     
     
@@ -33,6 +33,7 @@ public class lexical_ANALyzer {
     }
     
     private static int evaluateCondition(String condition,int index) {
+
     	int i=index+1;
     	String firstExpression="";
     	String secondExpression="";
@@ -155,7 +156,16 @@ public class lexical_ANALyzer {
     	
     	return i;
     }
+
     
+    private static int skipComment(String expression,int index) {
+    	int i=index+2;
+    	while(!(expression.charAt(i)=='/' & expression.charAt(i+1)=='/')){
+    		i=i+1;	
+    	}
+    	return i+2;
+    	
+    }
     /**
      * Lexically analyzes the expression
      * @param expression The expression to be analyzed
@@ -178,9 +188,14 @@ public class lexical_ANALyzer {
                     i++;
                     break;
                 case '/':
+                	if(expression.charAt(i+1)=='/') {
+                		i=lexical_ANALyzer.skipComment(expression, i);
+                		break;
+                	}else {
                     tokens.add(new Token<>(Type.DIVIDE, String.valueOf(currentCharacter)));
                     i++;
                     break;
+                	}
                 case '%':
                     tokens.add(new Token<>(Type.REMAINDER, String.valueOf(currentCharacter)));
                     i++;
@@ -205,7 +220,7 @@ public class lexical_ANALyzer {
                 		i=i+2;
                        }
                 	
-                	i=i + lexical_ANALyzer.evaluateCondition(expression, i);               	
+                	i=lexical_ANALyzer.evaluateCondition(expression, i);               	
                 	break;
                 default:
                     if(Character.isWhitespace(currentCharacter)) {
