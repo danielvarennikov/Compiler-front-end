@@ -21,6 +21,8 @@ What it is currently capable of:
 
 2)Working with if statements of the following type -> if(5 - 2 == 3){ + 2}
 
+3)Ignoring comments of the following type -> //YOUR COMMENT//
+
 -------------------------------------------------
 
 Feel free to use and ask me questions about it :)
