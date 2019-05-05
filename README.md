@@ -29,6 +29,8 @@ What it is currently capable of:
 
 6)Working with boolean variables of the following type -> bool ENTER_BOOLEAN_NAME = true/false;
 
+7)Working with signed/unsigned integer variables of the following type -> int ENTER_INTEGER_NAME = NUMBER;
+
 -------------------------------------------------
 
 Feel free to use and ask me questions about it :)
