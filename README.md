@@ -23,6 +23,10 @@ What it is currently capable of:
 
 3)Ignoring comments of the following type -> //YOUR COMMENT//
 
+4)Working with Strings of the following type -> str ENTER_STRING_NAME = "ENTER_STRING_VALUE";
+
+5)Working with Characters of the following type -> char ENTER_CHARACTER_NAME = ENTER_CHAR_VALUE ;
+
 -------------------------------------------------
 
 Feel free to use and ask me questions about it :)
