@@ -21,7 +21,7 @@ What it is currently capable of:
 
 1)Working with regular arithmetic expressions
 
-2)Working with if statements of the following type -> if(5 - 2 == 3){ + 2}
+2)Working with if statements of the following type -> if(LITERAL_OF_TYPE_BOOLEAN_PREVIOUSLY_DECLARED) --> throws an error otherwise
 
 3)Ignoring comments of the following type -> //YOUR COMMENT//
 
