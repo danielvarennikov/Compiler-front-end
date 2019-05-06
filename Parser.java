@@ -50,6 +50,25 @@ static LinkedList knownLiterals = new LinkedList();
     	return name;
     }
 
+    private static String extractVariableValue(Token t) {
+    	String name="";
+    	String theToken=t.toString();
+    	boolean started=false;
+    	boolean finished=false;
+    	for(int i=0;i<theToken.length() & !finished;i = i+1) {
+    		
+    		if(theToken.charAt(i) == '$') {
+    			started=true;
+    		}else if(theToken.charAt(i) == '>') {
+    			finished = true;
+    		}else if(started == true) {
+    			name = name + theToken.charAt(i);
+    		}
+    	}
+    	
+    	return name;
+    }
+    
     private static int evaluateCondition(LinkedList<Token> tokens,int index) {
 
     	int i=index+1;
@@ -70,7 +89,7 @@ static LinkedList knownLiterals = new LinkedList();
         	while(iter.hasNext() & !found) {
         		Token current = iter.next();
         		String currentTokenName = Parser.extractVariableName(current);
-        		if(currentTokenName.equals(literalName) & current.getType().equals(Type.BOOLEAN)) {
+        		if(currentTokenName.equals(literalName) & current.getType().equals(Type.BOOLEAN) & (Parser.extractVariableValue(current).equals("true") | Parser.extractVariableValue(current).equals("false"))) {
         			found = true;
         		}
         	}
@@ -79,7 +98,7 @@ static LinkedList knownLiterals = new LinkedList();
     				parsed.add(tokens.get(i));
     				i = i+1;
     				}else {
-    					throw new RuntimeException("The literal in the if condition is not of type BOOLEAN");
+    					throw new RuntimeException("The literal in the if condition is not of type BOOLEAN OR it wasnt initialised");
     				}
     		if(tokens.size() > i && tokens.get(i).getType().equals(Type.CLOSEBRACKET)) {
     			parsed.add(tokens.get(i));
