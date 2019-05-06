@@ -8,7 +8,7 @@ public class lexical_ANALyzer {
     
 //The types the lexer currently knows how to handle 
     public static enum Type {
-        ADD, SUBTRACT, MULTIPLY, DIVIDE, REMAINDER, OPERAND, STRING, CHARACTER, BOOLEAN ,INTEGER ,ASSIGNMENT ,SEMICOLON, LITERAL ,OPENBRACKET ,CLOSEBRACKET ,EVAL
+        ADD, SUBTRACT, MULTIPLY, DIVIDE, REMAINDER, OPERAND, STRING, CHARACTER, BOOLEAN ,INTEGER ,ASSIGNMENT ,SEMICOLON, LITERAL ,OPENBRACKET ,CLOSEBRACKET ,EVAL ,IF ,ELSE ,OPEN , CLOSE
     }
     
     
@@ -30,131 +30,6 @@ public class lexical_ANALyzer {
             }
         }
         return operand.substring(index, i);
-    }
-    
-    private static int evaluateCondition(String condition,int index) {
-
-    	int i=index+1;
-    	String firstExpression="";
-    	String secondExpression="";
-    	char operator='0';
-    	String result="";
-    	boolean finishedFirst=false;
-    	boolean finishedSecond=false;
-    	while(condition.charAt(i)!=')') {
-    		if(Character.isWhitespace(condition.charAt(i))) {
-    			i=i+1;
-    		}else {
-    			
-    			if(!finishedFirst) {
-    				if(Character.isDigit(condition.charAt(i))) {
-    					firstExpression=firstExpression+condition.charAt(i);
-    					i=i+1;
-    				}else {
-    					finishedFirst=true;
-    					operator=condition.charAt(i);
-    					i=i+1;
-    				}
-    			
-    				}else if(!finishedSecond) {
-    					if(Character.isDigit(condition.charAt(i))) {
-        					secondExpression=secondExpression+condition.charAt(i);
-        					i=i+1;
-        				}else {
-        					finishedSecond=true;
-        					i=i+2;
-        				}
-    				}else {
-    					result=result+condition.charAt(i);
-    					i=i+1;
-    				}
-    			
-    			}
-    		
-    	}
-    	
-    	i=i+1;
-    	int firstExpressionInteger=Integer.parseInt(firstExpression);
-    	int secondExpressionInteger=Integer.parseInt(secondExpression);
-    	int resultInteger=Integer.parseInt(result);
-    	boolean checker=false;
-    	switch(operator) {
-    	case '+':
-    		checker=(firstExpressionInteger+secondExpressionInteger==resultInteger);
-    		break;
-    	case '-':
-    		checker=(firstExpressionInteger-secondExpressionInteger==resultInteger);
-    		break;
-    	case '*':
-    		checker=(firstExpressionInteger*secondExpressionInteger==resultInteger);
-    		break;
-    	case '/':
-    		checker=(firstExpressionInteger/secondExpressionInteger==resultInteger);
-    		break;	
-    	}
-    	
-    	//If the boolean condition is true create a token
-    	i=i+1;
-    	if(checker==true) {
-    	while(condition.charAt(i)!='}') {	
-     		switch (condition.charAt(i)) {
-    			 case '+':
-                     tokens.add(new Token<>(Type.ADD, String.valueOf(condition.charAt(i))));
-                     i++;
-                     break;
-                 case '-':
-                     tokens.add(new Token<>(Type.SUBTRACT, String.valueOf(condition.charAt(i))));
-                     i++;
-                     break;
-                 case '*':
-                     tokens.add(new Token<>(Type.MULTIPLY, String.valueOf(condition.charAt(i))));
-                     i++;
-                     break;
-                 case '/':
-                     tokens.add(new Token<>(Type.DIVIDE, String.valueOf(condition.charAt(i))));
-                     i++;
-                     break;
-                 case '%':
-                     tokens.add(new Token<>(Type.REMAINDER, String.valueOf(condition.charAt(i))));
-                     i++;
-                     break;
-                 case '0':
-                 case '1':
-                 case '2':
-                 case '3':
-                 case '4':
-                 case '5':
-                 case '6':
-                 case '7':
-                 case '8':
-                 case '9':
-                 	//Get the operand and increment the counter by the operand's length to continue parsing the expression
-                     String operand = lexical_ANALyzer.getOperand(condition, i);
-                     i=i + operand.length();
-                     tokens.add(new Token<>(Type.OPERAND, operand));
-                     break;
-                 case 'i':
-                 	if(condition.charAt(i+1)=='f') {
-                 		i=i+2;
-                        }
-                 	
-                 	i=i + lexical_ANALyzer.evaluateCondition(condition, i);               	
-                 	break;
-                 default:
-                     if(Character.isWhitespace(condition.charAt(i))) {
-                         i++;
-                     }
-     		}
-    	}
-    	i=i+1;
-    	}else {
-    		while(condition.charAt(i)!='}') {
-    			i=i+1;
-    		}
-    		i=i+1;
-    	}
-    	
-    	return i;
     }
 
     private static int evaluateString(String expression,int index) {
@@ -355,7 +230,7 @@ public class lexical_ANALyzer {
     private static int evaluateLiteral(String expression,int index) {
     	int i=index;
     	String theLiteral="";
-    	while(!Character.isWhitespace(expression.charAt(i)) & expression.charAt(i)!=';') {
+    	while(!Character.isWhitespace(expression.charAt(i)) & expression.charAt(i)!=';' & expression.charAt(i) != ')') {
     		theLiteral=theLiteral+expression.charAt(i);
     		i = i+1;
     	}
@@ -418,7 +293,7 @@ public class lexical_ANALyzer {
                 case 'i':
                 	if(expression.charAt(i+1)=='f') {
                 			i=i+2;
-                			i=lexical_ANALyzer.evaluateCondition(expression, i);  
+                			tokens.add(new Token<>(Type.IF,"")); 
                 			break;
                        }else if(expression.charAt(i+1) == 'n' & expression.charAt(i+2) == 't') {
                     	   i=i+3;
@@ -473,7 +348,24 @@ public class lexical_ANALyzer {
                 case ')':
                 	tokens.add(new Token<>(Type.CLOSEBRACKET, ")"));
                 	i = i+1;
-                	break;	
+                	break;
+                case 'e':
+                	if(expression.charAt(i+1) == 'l' & expression.charAt(i+2) == 's' & expression.charAt(i+3) == 'e') {
+                		i=i+4;
+                		tokens.add(new Token<>(Type.ELSE, ""));
+                		break;
+                	}else {
+                		i=lexical_ANALyzer.evaluateLiteral(expression, i);
+                        break;
+                	}
+                case '{':
+                	tokens.add(new Token<>(Type.OPEN, ""));
+                	i=i+1;
+                	break;
+                case '}':
+                	tokens.add(new Token<>(Type.CLOSE, ""));
+                	i=i+1;
+                	break;
                 default:
                    i=lexical_ANALyzer.evaluateLiteral(expression, i);
                    break;
