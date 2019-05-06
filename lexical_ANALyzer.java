@@ -79,9 +79,11 @@ public class lexical_ANALyzer {
     	i = i+1;
     	
     	tokens.add(new Token<>(Type.STRING,strName+"$"+evaluation));
+    	tokens.add(new Token<>(Type.SEMICOLON,";"));
     		
     	}else {
     		tokens.add(new Token<>(Type.STRING,strName+"$NULL"));
+    		tokens.add(new Token<>(Type.SEMICOLON,";"));
     	}
     	
     	return i;

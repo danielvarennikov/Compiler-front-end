@@ -102,13 +102,77 @@ static LinkedList knownLiterals = new LinkedList();
     				}
     		if(tokens.size() > i && tokens.get(i).getType().equals(Type.CLOSEBRACKET)) {
     			parsed.add(tokens.get(i));
+    			i = i+1;
     		}else {
     			throw new RuntimeException("Illegal condition statement --> No closing bracket after 'if' ");
     		}
     	}else {
     		throw new RuntimeException("Illegal form of 'if' expression --> No LITERAL in the condition");
     	}
-    	return i;
+    	
+    	//Check that there is an opening parenthesis after the condition
+    	if(tokens.get(i).getType().equals(Type.OPEN)) {
+    		parsed.add(tokens.get(i));
+    		i = i+1;
+    		Token t;
+    		Stack<Token> stack = new Stack<Token>();
+    		boolean closed=false;
+    		for (; i < tokens.size() & !closed; i++) {
+                t = (Token) tokens.get(i);
+                //If a closing parenthesis is encountered finish
+                if(t.getType().equals(Type.CLOSE)) {
+                	parsed.add(tokens.get(i));
+                	closed = true;
+                }else {
+                	
+                	if (t.getType().equals(Type.OPERAND) | t.getType().equals(Type.SEMICOLON)) {
+                		parsed.add(t);
+                
+                		//If a new variable is initialized add it to the "table" of known variables    
+                	}else if(t.getType().equals(Type.STRING) | t.getType().equals(Type.CHARACTER) | t.getType().equals(Type.BOOLEAN) | t.getType().equals(Type.INTEGER)){
+                		knownLiterals.add(t);
+                		parsed.add(t);
+                	
+                		//If a literal is encountered check if it was initialized before(from the "table") and add it only if it was initialized 	
+                	}else if(t.getType().equals(Type.LITERAL)) {
+                		String literalName = Parser.extractVariableName(t);
+                		boolean found =false;
+                		Iterator<Token> iter = knownLiterals.iterator();
+                		while(iter.hasNext() & !found) {
+                			String current = Parser.extractVariableName(iter.next());
+                			if(literalName.equals(current)) {
+                				found = true;
+                			}
+                		}
+                		if(found == true) {
+                			parsed.add(t);
+                		}
+                
+                		//If a condition is encountered check that it is in correct form: if<cond> --> <stmt> else--> <stmt>	
+                	}else if(t.getType().equals(Type.IF)){
+                		parsed.add(t);
+                		i = Parser.evaluateCondition(tokens, i);
+                	
+                	}else {
+                		if (!stack.isEmpty() && getPrecedence(t) <= getPrecedence(stack.peek())) {
+                			parsed.add(stack.pop());
+                    }
+                		stack.push(t);
+                	}	
+                }
+
+                while (!stack.isEmpty()) {
+                	parsed.add(stack.pop());
+                }
+    			}	
+    		if(closed == false) {
+    			throw new RuntimeException("Illegal form of 'if' expression --> No closing parenthesis after the statement");
+    		}
+    		
+    		}else {
+    			throw new RuntimeException("Illegal form of 'if' expression --> No opening parenthesis after the condition");
+    		}
+    	return i - 1;
     }
     
     public LinkedList parse() {
@@ -117,11 +181,11 @@ static LinkedList knownLiterals = new LinkedList();
 
         for (int i = 0; i < tokens.size(); i++) {
             t = (Token) tokens.get(i);
-            if (t.getType().equals(Type.OPERAND)) {
+            if (t.getType().equals(Type.OPERAND) | t.getType().equals(Type.SEMICOLON)) {
                 parsed.add(t);
             
             //If a new variable is initialized add it to the "table" of known variables    
-            }else if(t.getType().equals(Type.STRING) | t.getType().equals(Type.CHARACTER) | t.getType().equals(Type.BOOLEAN) | t.getType().equals(Type.INTEGER)){
+            }else if(t.getType().equals(Type.STRING) | t.getType().equals(Type.CHARACTER) | t.getType().equals(Type.BOOLEAN) | t.getType().equals(Type.INTEGER) ){
             	knownLiterals.add(t);
             	parsed.add(t);
             	
