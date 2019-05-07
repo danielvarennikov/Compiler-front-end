@@ -8,7 +8,7 @@ public class lexical_ANALyzer {
     
 //The types the lexer currently knows how to handle 
     public static enum Type {
-        ADD, SUBTRACT, MULTIPLY, DIVIDE, REMAINDER, OPERAND, STRING, CHARACTER, BOOLEAN ,INTEGER ,ASSIGNMENT ,SEMICOLON, LITERAL ,OPENBRACKET ,CLOSEBRACKET ,EVAL ,IF ,ELSE ,OPEN , CLOSE, WHILE
+        ADD, SUBTRACT, MULTIPLY, DIVIDE, REMAINDER, OPERAND, STRING, CHARACTER, BOOLEAN ,INTEGER ,ASSIGNMENT ,SEMICOLON, LITERAL ,OPENBRACKET ,CLOSEBRACKET ,EVAL ,IF ,ELSE ,OPEN , CLOSE, WHILE, STRINGLITERAL
     }
     
     
@@ -121,9 +121,10 @@ public class lexical_ANALyzer {
     	}
     	i = i+1;
     	tokens.add(new Token<>(Type.CHARACTER,charName+"$"+evaluation));
-    		
+    	tokens.add(new Token<>(Type.SEMICOLON,";"));	
     	}else {
     		tokens.add(new Token<>(Type.CHARACTER,charName+"$NULL"));
+    		tokens.add(new Token<>(Type.SEMICOLON,";"));
     	}
     	
     	
@@ -236,11 +237,27 @@ public class lexical_ANALyzer {
     private static int evaluateLiteral(String expression,int index) {
     	int i=index;
     	String theLiteral="";
+    	if(expression.charAt(i) == '"') {
+    	boolean closed = false;
+    	i = i+1;
+    	while(!Character.isWhitespace(expression.charAt(i)) & expression.charAt(i)!=';' & expression.charAt(i) != ')') {
+    		if(expression.charAt(i) == '"') {
+    			closed = true;
+    			i = i+1;
+    		}else {
+    			theLiteral = theLiteral+expression.charAt(i);
+    			i = i+1;
+    		}
+    	}
+    	
+    	tokens.add(new Token<>(Type.STRINGLITERAL, theLiteral));
+    	}else {
     	while(!Character.isWhitespace(expression.charAt(i)) & expression.charAt(i)!=';' & expression.charAt(i) != ')') {
     		theLiteral=theLiteral+expression.charAt(i);
     		i = i+1;
     	}
     	tokens.add(new Token<>(Type.LITERAL, theLiteral));
+    	}
     	return i;
     }
     

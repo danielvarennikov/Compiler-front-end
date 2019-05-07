@@ -55,17 +55,31 @@ static LinkedList knownLiterals = new LinkedList();
     	String theToken=t.toString();
     	boolean started=false;
     	boolean finished=false;
-    	for(int i=0;i<theToken.length() & !finished;i = i+1) {
+
+    	if(t.getType().equals(Type.OPERAND) | t.getType().equals(Type.LITERAL)) {
     		
-    		if(theToken.charAt(i) == '$') {
-    			started=true;
-    		}else if(theToken.charAt(i) == '>') {
-    			finished = true;
-    		}else if(started == true) {
-    			name = name + theToken.charAt(i);
+    		for(int i=0;i<theToken.length() & !finished;i = i+1) {
+        		
+        		if(theToken.charAt(i) == ',') {
+        			started=true;
+        		}else if(theToken.charAt(i) == '>') {
+        			finished = true;
+        		}else if(started == true) {
+        			name = name + theToken.charAt(i);
+        		}
+        	}
+    	}else {	
+    		for(int i=0;i<theToken.length() & !finished;i = i+1) {
+    		
+    			if(theToken.charAt(i) == '$') {
+    				started=true;
+    			}else if(theToken.charAt(i) == '>') {
+    				finished = true;
+    			}else if(started == true) {
+    				name = name + theToken.charAt(i);
+    			}
     		}
     	}
-    	
     	return name;
     }
     
@@ -377,6 +391,99 @@ static LinkedList knownLiterals = new LinkedList();
     	return i -1;
     }
     
+    private static Token extractInitial(Token t){
+    	String thisTokenName = Parser.extractVariableName(t);
+    	Iterator<Token> iter = knownLiterals.iterator();
+    	Token raw = null;
+    	boolean found = false;
+    	while(iter.hasNext() & !found) {
+    		Token current = iter.next();
+    		String currentName = Parser.extractVariableName(current);
+    		if((!current.getType().equals(Type.LITERAL)) & currentName.equals(thisTokenName)) {
+    			found =true;
+    			raw = current;
+    		}
+    		
+    	}
+    	
+    	return raw;
+    }
+    
+    private static boolean arithmeticExpression(LinkedList<Token> tokens,int index) {
+    	int i = index;
+    	boolean isValid = true;
+    	while(i < tokens.size() & isValid & (!tokens.get(i).getType().equals(Type.SEMICOLON))){
+    		if(!(tokens.get(i).getType().equals(Type.OPERAND) | tokens.get(i).getType().equals(Type.ADD) | tokens.get(i).getType().equals(Type.SUBTRACT) | tokens.get(i).getType().equals(Type.MULTIPLY) | tokens.get(i).getType().equals(Type.DIVIDE))){
+    			isValid = false;
+    		}
+    		i = i+1;
+    	}
+    	return isValid;
+    }
+    
+    private static int evaluateAssignment(LinkedList<Token> tokens,int index) {
+    	int i =index;
+    	
+    	//Check that the previous token is a Literal --> if not throw an exception
+    	if(tokens.get(i).getType().equals(Type.LITERAL)) {
+    		Token toAssign = tokens.get(i);
+    		i = i+1;
+    		
+    		//Add the assignment token to the parsed list
+    		parsed.add(tokens.get(i));
+    		i = i+1;
+
+    		//Check that the values that we want to assign are the same type --> if not throw a type mismatch
+    		if(Parser.extractInitial(toAssign).getType().equals(Type.STRING) & tokens.get(i).getType().equals(Type.STRINGLITERAL)) {
+    			parsed.add(tokens.get(i));
+    			i = i+1;
+    		}else if(Parser.extractInitial(toAssign).getType().equals(Type.INTEGER) & Parser.arithmeticExpression(tokens, i)) {
+    			parsed.add(tokens.get(i));
+    			i = i+1;
+    		}else if(Parser.extractInitial(toAssign).getType().equals(Type.INTEGER) & tokens.get(i).getType().equals(Type.STRINGLITERAL)) {
+    			throw new RuntimeException("Type mismatch in ASSIGMENT --> CANNOT ASSIGN "+Type.STRINGLITERAL+" to "+Parser.extractInitial(toAssign).getType());
+    		}else if(Parser.extractInitial(toAssign).getType().equals(Type.STRING) & Parser.arithmeticExpression(tokens, i)) {
+    			throw new RuntimeException("Type mismatch in ASSIGMENT --> CANNOT ASSIGN arithmetic expression to "+Parser.extractInitial(toAssign).getType());
+    		}else if((tokens.get(i).getType().equals(Type.LITERAL) | tokens.get(i).getType().equals(Type.OPERAND)) & Parser.extractInitial(toAssign).getType().equals(Type.CHARACTER)) {
+    			if(Parser.extractVariableValue(tokens.get(i)).length() == 1) {
+    				parsed.add(tokens.get(i));
+    				i = i+1;
+    			}else {
+
+    				throw new RuntimeException("INVALID CHARACHTER ASSINGMENT --> cannot assign "+Parser.extractVariableValue(tokens.get(i))+" to CHARACHTER");
+    			}
+    		}else if(Parser.extractInitial(toAssign).getType().equals(Parser.extractInitial(tokens.get(i)).getType())){
+    			parsed.add(tokens.get(i));
+    			i = i+1;	
+    		}else {
+    			throw new RuntimeException("Type mismatch in ASSIGMENT --> CANNOT ASSIGN "+Parser.extractInitial(tokens.get(i)).getType()+" to "+Parser.extractInitial(toAssign).getType());
+    		}
+    		
+    	}else {
+    		throw new RuntimeException("Evaluation error --> The Variable before the aasigment is not a LITERAL");
+    	}
+    	
+    	return i - 1;
+    	
+    }
+    
+    private static boolean checkKnown(Token t) {
+    	Token toCheck = t;
+    	String tokenName = Parser.extractVariableName(toCheck);
+    	boolean found = false;
+    	Iterator<Token> iter = knownLiterals.iterator();
+    	while(iter.hasNext() & !found) {
+    		Token current =iter.next();
+    		String currentName = Parser.extractVariableName(current);
+    		if(currentName.equals(tokenName)) {
+    			found = true;
+    		}
+    		
+    	}
+    	return found;
+    	
+    }
+    
     public LinkedList parse() {
         Stack<Token> stack = new Stack<Token>();  
         Token t;
@@ -393,15 +500,7 @@ static LinkedList knownLiterals = new LinkedList();
             	
             //If a literal is encountered check if it was initialized before(from the "table") and add it only if it was initialized 	
             }else if(t.getType().equals(Type.LITERAL)) {
-            	String literalName = Parser.extractVariableName(t);
-            	boolean found =false;
-            	Iterator<Token> iter = knownLiterals.iterator();
-            	while(iter.hasNext() & !found) {
-            		String current = Parser.extractVariableName(iter.next());
-            		if(literalName.equals(current)) {
-            			found = true;
-            		}
-            	}
+            	boolean found = Parser.checkKnown(t);
             	if(found == true) {
             		parsed.add(t);
             	}else {
@@ -420,6 +519,8 @@ static LinkedList knownLiterals = new LinkedList();
             }else if(t.getType().equals(Type.WHILE)) {
             	parsed.add(t);
             	i = Parser.evaluateWhile(tokens, i);
+            }else if(t.getType().equals(Type.ASSIGNMENT)) {
+            	i = Parser.evaluateAssignment(tokens, i -1);
             }else {
                 if (!stack.isEmpty() && getPrecedence(t) <= getPrecedence(stack.peek())) {
                 	parsed.add(stack.pop());
