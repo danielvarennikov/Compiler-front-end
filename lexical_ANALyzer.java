@@ -222,9 +222,11 @@ public class lexical_ANALyzer {
     	i = i+1;
     	
     		tokens.add(new Token<>(Type.INTEGER,intName+"$"+evaluation));
+    		tokens.add(new Token<>(Type.SEMICOLON,";"));
     		
     	}else {
     		tokens.add(new Token<>(Type.INTEGER,intName+"$NULL"));
+    		tokens.add(new Token<>(Type.SEMICOLON,";"));
     	}
     	
     	
