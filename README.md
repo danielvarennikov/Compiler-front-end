@@ -35,6 +35,8 @@ What it is currently capable of:
 
 9)The parser only parses literals previously declared (by looking at its variables "table")
 
+10)Working with while statements of the following type --> while(LITERAL_OF_TYPE_BOOLEAN_PREVIOUSLY_INITIALIZED) { YOUR_EXPRESSION } --> throws an error otherwise
+
 -------------------------------------------------
 
 Feel free to use and ask me questions about it :)
