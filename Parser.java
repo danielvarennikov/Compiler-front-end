@@ -146,6 +146,8 @@ static LinkedList knownLiterals = new LinkedList();
                 		}
                 		if(found == true) {
                 			parsed.add(t);
+                		}else {
+                			throw new RuntimeException("Undeclared variable -->" + Parser.extractVariableName(t));
                 		}
                 
                 		//If a condition is encountered check that it is in correct form: if<cond> --> <stmt> else--> <stmt>	
@@ -153,7 +155,9 @@ static LinkedList knownLiterals = new LinkedList();
                 		parsed.add(t);
                 		i = Parser.evaluateCondition(tokens, i);
                 	
-                	}else {
+                	}else if(t.getType().equals(Type.ELSE)) {
+                    	throw new RuntimeException("'ELSE' without previous 'IF' token");
+                    }else {
                 		if (!stack.isEmpty() && getPrecedence(t) <= getPrecedence(stack.peek())) {
                 			parsed.add(stack.pop());
                     }
@@ -172,6 +176,85 @@ static LinkedList knownLiterals = new LinkedList();
     		}else {
     			throw new RuntimeException("Illegal form of 'if' expression --> No opening parenthesis after the condition");
     		}
+    	
+    	
+    	//Check if the next token is an ELSE token --> add it to the parsed list if so
+    	if(tokens.get(i).getType().equals(Type.ELSE)) {
+    		parsed.add(tokens.get(i));
+    		i = i+1;
+    		
+    		//Check that the else statement is followed by open parenthesis --> If not throw an exception
+    		if(i<tokens.size() && tokens.get(i).getType().equals(Type.OPEN)) {
+    			parsed.add(tokens.get(i));
+    			i = i+1;
+    		}else {
+    			throw new RuntimeException("Illegal form of 'else' expression --> No opening parenthesis after the else statement");
+    		}
+    		
+    		//Now parse all there is inside it and throw an exception if there are no closing parenthesis
+    		Token t;
+    		Stack<Token> stack = new Stack<Token>();
+    		boolean closed=false;
+    		for (; i < tokens.size() & !closed; i++) {
+                t = (Token) tokens.get(i);
+                //If a closing parenthesis is encountered finish
+                if(t.getType().equals(Type.CLOSE)) {
+                	parsed.add(tokens.get(i));
+                	closed = true;
+                }else {
+                	
+                	if (t.getType().equals(Type.OPERAND) | t.getType().equals(Type.SEMICOLON)) {
+                		parsed.add(t);
+                
+                		//If a new variable is initialized add it to the "table" of known variables    
+                	}else if(t.getType().equals(Type.STRING) | t.getType().equals(Type.CHARACTER) | t.getType().equals(Type.BOOLEAN) | t.getType().equals(Type.INTEGER)){
+                		knownLiterals.add(t);
+                		parsed.add(t);
+                	
+                		//If a literal is encountered check if it was initialized before(from the "table") and add it only if it was initialized 	
+                	}else if(t.getType().equals(Type.LITERAL)) {
+                		String literalName = Parser.extractVariableName(t);
+                		boolean found =false;
+                		Iterator<Token> iter = knownLiterals.iterator();
+                		while(iter.hasNext() & !found) {
+                			String current = Parser.extractVariableName(iter.next());
+                			if(literalName.equals(current)) {
+                				found = true;
+                			}
+                		}
+                		if(found == true) {
+                			parsed.add(t);
+                		}else {
+                			throw new RuntimeException("Undeclared variable -->" + Parser.extractVariableName(t));
+                		}
+                
+                		//If a condition is encountered check that it is in correct form: if<cond> --> <stmt> else--> <stmt>	
+                	}else if(t.getType().equals(Type.IF)){
+                		parsed.add(t);
+                		i = Parser.evaluateCondition(tokens, i);
+                	
+                	}else if(t.getType().equals(Type.ELSE)) {
+                    	throw new RuntimeException("'ELSE' without previous 'IF' token");
+                    }else {
+                		if (!stack.isEmpty() && getPrecedence(t) <= getPrecedence(stack.peek())) {
+                			parsed.add(stack.pop());
+                    }
+                		stack.push(t);
+                	}	
+                }
+
+                while (!stack.isEmpty()) {
+                	parsed.add(stack.pop());
+                }
+    			}	
+    		if(closed == false) {
+    			throw new RuntimeException("Illegal form of 'else' expression --> No closing parenthesis after the statement");
+    		}
+    		
+    		}
+    
+    	
+    	
     	return i - 1;
     }
     
@@ -202,13 +285,17 @@ static LinkedList knownLiterals = new LinkedList();
             	}
             	if(found == true) {
             		parsed.add(t);
-            	}
+            	}else {
+        			throw new RuntimeException("Undeclared variable -->" + Parser.extractVariableName(t));
+        		}
             
             //If a condition is encountered check that it is in correct form: if<cond> --> <stmt> else--> <stmt>	
             }else if(t.getType().equals(Type.IF)){
             	parsed.add(t);
             	i = Parser.evaluateCondition(tokens, i);
             	
+            }else if(t.getType().equals(Type.ELSE)) {
+            	throw new RuntimeException("'ELSE' without previous 'IF' token");
             }else {
                 if (!stack.isEmpty() && getPrecedence(t) <= getPrecedence(stack.peek())) {
                 	parsed.add(stack.pop());

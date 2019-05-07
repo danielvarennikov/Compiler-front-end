@@ -8,7 +8,7 @@ public class lexical_ANALyzer {
     
 //The types the lexer currently knows how to handle 
     public static enum Type {
-        ADD, SUBTRACT, MULTIPLY, DIVIDE, REMAINDER, OPERAND, STRING, CHARACTER, BOOLEAN ,INTEGER ,ASSIGNMENT ,SEMICOLON, LITERAL ,OPENBRACKET ,CLOSEBRACKET ,EVAL ,IF ,ELSE ,OPEN , CLOSE
+        ADD, SUBTRACT, MULTIPLY, DIVIDE, REMAINDER, OPERAND, STRING, CHARACTER, BOOLEAN ,INTEGER ,ASSIGNMENT ,SEMICOLON, LITERAL ,OPENBRACKET ,CLOSEBRACKET ,EVAL ,IF ,ELSE ,OPEN , CLOSE, WHILE
     }
     
     
@@ -172,9 +172,11 @@ public class lexical_ANALyzer {
     	i = i+1;
     	if(evaluation.equals("true") | evaluation.equals("false")) {
     		tokens.add(new Token<>(Type.BOOLEAN,boolName+"$"+evaluation));
+    		tokens.add(new Token<>(Type.SEMICOLON,";"));
     		}
     	}else {
     		tokens.add(new Token<>(Type.BOOLEAN,boolName+"$NULL"));
+    		tokens.add(new Token<>(Type.SEMICOLON,";"));
     	}
     	
     	
@@ -368,6 +370,15 @@ public class lexical_ANALyzer {
                 	tokens.add(new Token<>(Type.CLOSE, ""));
                 	i=i+1;
                 	break;
+                case 'w':
+                	if(expression.charAt(i+1) == 'h' & expression.charAt(i+2) == 'i' & expression.charAt(i+3) == 'l' & expression.charAt(i+4) == 'e') {
+                		i=i+5;
+                		tokens.add(new Token<>(Type.WHILE, ""));
+                		break;
+                	}else {
+                		i=lexical_ANALyzer.evaluateLiteral(expression, i);
+                        break;
+                	}
                 default:
                    i=lexical_ANALyzer.evaluateLiteral(expression, i);
                    break;
