@@ -1,14 +1,17 @@
 package ba55_compiler;
 
 import java.util.LinkedList;
-
+import java.util.regex.*;
 //The lexical analyzer
 public class lexical_ANALyzer {
 	 static LinkedList<Token<Type, String>> tokens = new LinkedList<>();
     
 //The types the lexer currently knows how to handle 
     public static enum Type {
-        ADD, SUBTRACT, MULTIPLY, DIVIDE, REMAINDER, OPERAND, STRING, CHARACTER, BOOLEAN ,INTEGER ,ASSIGNMENT ,SEMICOLON, LITERAL ,OPENBRACKET ,CLOSEBRACKET ,EVAL ,IF ,ELSE ,OPEN , CLOSE, WHILE, STRINGLITERAL
+        ADD, SUBTRACT, MULTIPLY, DIVIDE, REMAINDER, OPERAND, STRING, CHARACTER, BOOLEAN ,INTEGER ,ASSIGNMENT ,SEMICOLON, 
+        LITERAL ,OPENBRACKET ,CLOSEBRACKET ,EVAL ,IF ,ELSE ,OPEN , CLOSE, WHILE, STRINGLITERAL, FUNCTION_VOID, FUNCTION_BOOLEAN,
+        FUNCTION_STRING, FUNCTION_INTEGER, FUNCTION_CHARACHTER ,RETURN
+        
     }
     
     
@@ -240,7 +243,7 @@ public class lexical_ANALyzer {
     	if(expression.charAt(i) == '"') {
     	boolean closed = false;
     	i = i+1;
-    	while(!Character.isWhitespace(expression.charAt(i)) & expression.charAt(i)!=';' & expression.charAt(i) != ')') {
+    	while(!Character.isWhitespace(expression.charAt(i)) & expression.charAt(i)!=';' & expression.charAt(i) != ')' & expression.charAt(i) != '(') {
     		if(expression.charAt(i) == '"') {
     			closed = true;
     			i = i+1;
@@ -252,13 +255,59 @@ public class lexical_ANALyzer {
     	
     	tokens.add(new Token<>(Type.STRINGLITERAL, theLiteral));
     	}else {
-    	while(!Character.isWhitespace(expression.charAt(i)) & expression.charAt(i)!=';' & expression.charAt(i) != ')') {
+    	while(!Character.isWhitespace(expression.charAt(i)) & expression.charAt(i)!=';' & expression.charAt(i) != ')' & expression.charAt(i) != '(') {
     		theLiteral=theLiteral+expression.charAt(i);
     		i = i+1;
     	}
     	tokens.add(new Token<>(Type.LITERAL, theLiteral));
     	}
     	return i;
+    }
+    
+    private static void checkFunctionStruct(String type,String expression,int index) {
+   	
+    	//Check the structure of the function using Regular expressions -->If it is not in the right structure throw an exception
+    	
+		String toCheck=expression.substring(index);
+
+    	if(type.equals("str")) {
+    		String grep="(str_fun(\\s*)[a-zA-Z_0-9]+(\\s*)[(]((int|str|char|bool)(\\s*)[a-zA-Z_0-9]+(\\s*)[;](\\s*))*[)](\\s*)[{](.*)return(\\s*)[a-zA-Z_0-9]+(\\s*)[;](\\s*)[}])";
+    		Pattern r=Pattern.compile(grep);
+    		Matcher m=r.matcher(toCheck);
+    		if(!m.find()) {
+    			throw new RuntimeException("Incorrect str_fun structure");
+    		}
+    	}else if(type.equals("int")) {
+    		String grep="(int_fun(\\s*)[a-zA-Z_0-9]+(\\s*)[(]((int|str|char|bool)(\\s*)[a-zA-Z_0-9]+(\\s*)[;](\\s*))*[)](\\s*)[{](.*)return(\\s*)[a-zA-Z_0-9]+(\\s*)[;](\\s*)[}])";
+    		Pattern r=Pattern.compile(grep);
+    		Matcher m=r.matcher(toCheck);
+    		if(!m.find()) {
+    			throw new RuntimeException("Incorrect int_fun structure");
+    		}
+    	}else if(type.equals("bool")) {
+    		String grep="(bool_fun(\\s*)[a-zA-Z_0-9]+(\\s*)[(]((int|str|char|bool)(\\s*)[a-zA-Z_0-9]+(\\s*)[;](\\s*))*[)](\\s*)[{](.*)return(\\s*)[a-zA-Z_0-9]+(\\s*)[;](\\s*)[}])";
+    		Pattern r=Pattern.compile(grep);
+    		Matcher m=r.matcher(toCheck);
+    		if(!m.find()) {
+    			throw new RuntimeException("Incorrect bool_fun structure");
+    		}
+    	}else if(type.equals("void")) {
+    		String grep="(void_fun(\\s*)[a-zA-Z_0-9]+(\\s*)[(]((int|str|char|bool)(\\s*)[a-zA-Z_0-9]+(\\s*)[;](\\s*))*[)](\\s*)[{](.*)[}])";
+    		Pattern r=Pattern.compile(grep);
+    		Matcher m=r.matcher(toCheck);
+    		if(!m.find()) {
+    			throw new RuntimeException("Incorrect void_fun structure");
+    		}
+    	}else if(type.equals("char")) {
+    		String grep="(char_fun(\\s*)[a-zA-Z_0-9]+(\\s*)[(]((int|str|char|bool)(\\s*)[a-zA-Z_0-9]+(\\s*)[;](\\s*))*[)](\\s*)[{](.*)return(\\s*)[a-zA-Z_0-9]+(\\s*)[;](\\s*)[}])";
+    		Pattern r=Pattern.compile(grep);
+    		Matcher m=r.matcher(toCheck);
+    		if(!m.find()) {
+    			throw new RuntimeException("Incorrect char_fun structure");
+    		}
+    	}
+    	
+
     }
     
     /**
@@ -319,33 +368,61 @@ public class lexical_ANALyzer {
                 			tokens.add(new Token<>(Type.IF,"")); 
                 			break;
                        }else if(expression.charAt(i+1) == 'n' & expression.charAt(i+2) == 't') {
-                    	   i=i+3;
-                    	   i=lexical_ANALyzer.evaluateInteger(expression, i);  
-                    	  break; 
+                    	   if(expression.charAt(i+3) == '_' && expression.charAt(i+4) == 'f' && expression.charAt(i+5) == 'u' && expression.charAt(i+6) == 'n') {
+                    		   lexical_ANALyzer.checkFunctionStruct("int", expression, i);
+                    		   tokens.add(new Token<>(Type.FUNCTION_INTEGER,""));
+                   			   i = i+7;
+                   			   break;	
+                    	   }else {
+                    		   i=i+3;
+                    		   i=lexical_ANALyzer.evaluateInteger(expression, i);  
+                    		   break; 
+                    	   }
                        }else {
                     	   i=lexical_ANALyzer.evaluateLiteral(expression, i);
                            break;
                        }
                 case 's':
                 	if(expression.charAt(i+1)=='t' & expression.charAt(i+2)=='r') {
-                		i=lexical_ANALyzer.evaluateString(expression, i+3);
-                		break;
+                		if(expression.charAt(i+3) == '_' && expression.charAt(i+4) == 'f' && expression.charAt(i+5) == 'u' && expression.charAt(i+6) == 'n') {
+                			lexical_ANALyzer.checkFunctionStruct("str", expression, i);
+                			tokens.add(new Token<>(Type.FUNCTION_STRING,""));
+                			i = i+7;
+                			break;		
+                		}else {
+                			i=lexical_ANALyzer.evaluateString(expression, i+3);
+                			break;
+                		}
                 	}else {
                 		i=lexical_ANALyzer.evaluateLiteral(expression, i);
                         break;
                 	}
                 case 'c':
                 	if(expression.charAt(i+1) == 'h' && expression.charAt(i+2) == 'a' && expression.charAt(i+3) == 'r') {
-                		i=lexical_ANALyzer.evaluateChar(expression, i+4);
-                		break;
+                		if(expression.charAt(i+4) == '_' && expression.charAt(i+5) == 'f' && expression.charAt(i+6) == 'u' && expression.charAt(i+7) == 'n') {
+                			lexical_ANALyzer.checkFunctionStruct("char", expression, i);
+                			tokens.add(new Token<>(Type.FUNCTION_CHARACHTER,""));
+                    		i = i+8;
+                    		break;
+                		}else {
+                			i=lexical_ANALyzer.evaluateChar(expression, i+4);
+                			break;
+                		}
                 	}else {
                 		i=lexical_ANALyzer.evaluateLiteral(expression, i);
                         break;
                 	}
                 case 'b':
                 	if(expression.charAt(i+1) == 'o' && expression.charAt(i+2) == 'o' && expression.charAt(i+3) == 'l') {
-                		i=lexical_ANALyzer.evaluateBoolean(expression, i+4);
-                		break;
+                		if(expression.charAt(i+4) == '_' && expression.charAt(i+5) == 'f' && expression.charAt(i+6) == 'u' && expression.charAt(i+7) == 'n') {
+                			lexical_ANALyzer.checkFunctionStruct("bool", expression, i);
+                			tokens.add(new Token<>(Type.FUNCTION_BOOLEAN,""));
+                    		i = i+8;
+                    		break;
+                		}else {
+                			i=lexical_ANALyzer.evaluateBoolean(expression, i+4);
+                			break;
+                		}
                 	}else {
                 		i=lexical_ANALyzer.evaluateLiteral(expression, i);
                         break;
@@ -393,6 +470,25 @@ public class lexical_ANALyzer {
                 	if(expression.charAt(i+1) == 'h' & expression.charAt(i+2) == 'i' & expression.charAt(i+3) == 'l' & expression.charAt(i+4) == 'e') {
                 		i=i+5;
                 		tokens.add(new Token<>(Type.WHILE, ""));
+                		break;
+                	}else {
+                		i=lexical_ANALyzer.evaluateLiteral(expression, i);
+                        break;
+                	}
+                case 'v':
+                	if(expression.charAt(i+1) == 'o' & expression.charAt(i+2) == 'i' & expression.charAt(i+3) == 'd' & expression.charAt(i+4) == '_' & expression.charAt(i+5) == 'f' & expression.charAt(i+6) == 'u' & expression.charAt(i+7) == 'n') {
+                		lexical_ANALyzer.checkFunctionStruct("void", expression, i);
+                		tokens.add(new Token<>(Type.FUNCTION_VOID, ""));
+                		i=i+8;
+                		break;
+                	}else {
+                		i=lexical_ANALyzer.evaluateLiteral(expression, i);
+                        break;
+                	}
+                case 'r':
+                	if(expression.charAt(i+1) == 'e' & expression.charAt(i+2) == 't' & expression.charAt(i+3) == 'u' & expression.charAt(i+4) == 'r' & expression.charAt(i+5) == 'n') {
+                		i=i+6;
+                		tokens.add(new Token<>(Type.RETURN, ""));
                 		break;
                 	}else {
                 		i=lexical_ANALyzer.evaluateLiteral(expression, i);
