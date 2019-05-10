@@ -39,6 +39,14 @@ What it is currently capable of:
 
 11)Checking for type mismatch after assigning values to variables
 
+12)Working with functions of the following type:
+
+str|int|char|bool _fun YOUR_FUNCTION_NAME (int|char|str|bool NAME_OF_THE_LITERAL_YOU_WANT_TO_PASS;)* { YOUR_FUNCTION return YOUR_LITERAL ;}
+
+void_fun YOUR_FUNCTION_NAME (int|char|str|bool NAME_OF_THE_LITERAL_YOU_WANT_TO_PASS;)* { YOUR_FUNCTION}
+
+-->throws an error otherwise
+
 -------------------------------------------------
 
 Feel free to use and ask me questions about it :)
