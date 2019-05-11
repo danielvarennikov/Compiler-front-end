@@ -47,6 +47,8 @@ void_fun YOUR_FUNCTION_NAME (int|char|str|bool NAME_OF_THE_LITERAL_YOU_WANT_TO_P
 
 -->throws an error otherwise
 
+13)Checking that the return type of a function matches the function type --> throws an error otherwise
+
 -------------------------------------------------
 
 Feel free to use and ask me questions about it :)
