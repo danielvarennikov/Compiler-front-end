@@ -10,7 +10,7 @@ public class lexical_ANALyzer {
     public static enum Type {
         ADD, SUBTRACT, MULTIPLY, DIVIDE, REMAINDER, OPERAND, STRING, CHARACTER, BOOLEAN ,INTEGER ,ASSIGNMENT ,SEMICOLON, 
         LITERAL ,OPENBRACKET ,CLOSEBRACKET ,EVAL ,IF ,ELSE ,OPEN , CLOSE, WHILE, STRINGLITERAL, FUNCTION_VOID, FUNCTION_BOOLEAN,
-        FUNCTION_STRING, FUNCTION_INTEGER, FUNCTION_CHARACHTER ,RETURN
+        FUNCTION_STRING, FUNCTION_INTEGER, FUNCTION_CHARACTER ,RETURN
         
     }
     
@@ -401,7 +401,7 @@ public class lexical_ANALyzer {
                 	if(expression.charAt(i+1) == 'h' && expression.charAt(i+2) == 'a' && expression.charAt(i+3) == 'r') {
                 		if(expression.charAt(i+4) == '_' && expression.charAt(i+5) == 'f' && expression.charAt(i+6) == 'u' && expression.charAt(i+7) == 'n') {
                 			lexical_ANALyzer.checkFunctionStruct("char", expression, i);
-                			tokens.add(new Token<>(Type.FUNCTION_CHARACHTER,""));
+                			tokens.add(new Token<>(Type.FUNCTION_CHARACTER,""));
                     		i = i+8;
                     		break;
                 		}else {

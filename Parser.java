@@ -484,6 +484,124 @@ static LinkedList knownLiterals = new LinkedList();
     	
     }
     
+    private static String extractFunctionType(Token t) {
+    	String type = "";
+    	String function = t.toString();
+    	int i = 0;
+    	boolean started = false;
+    	while(function.charAt(i) != ',') {
+    		if(function.charAt(i) == '_') {
+    			started = true;
+    			i = i+1;
+    		}else if(started == true) {
+    			type = type + function.charAt(i);
+    			i = i+1;
+    		}else {
+    			i = i+1;
+    		}
+    	}
+    	
+    	return type;
+    }
+    
+    private static int evaluateFunction(LinkedList<Token> tokens,int index) {
+    	//We don't have to verify the structure of the function because the lexer already did this,
+    	//We only check the correctness of the syntax
+    	int i=index;
+    	
+    	//Keep the function type so that we can compare it to the return type
+    	String functionType = Parser.extractFunctionType(tokens.get(i));
+    	i = i+1;
+    	
+    	//Add the name of the function to the parsed list -->only if it is a literal
+    	if(tokens.get(i).getType().equals(Type.LITERAL)) {
+    		parsed.add(tokens.get(i));
+    		i = i+1;
+    	}else {
+    		throw new RuntimeException("Illegal function name --> "+tokens.get(i).toString());
+    	}
+    	
+    	//Parse the function and check the return value
+    	Stack<Token> stack = new Stack<Token>();  
+        Token t;
+        boolean finished = false;
+        for (; i < tokens.size() & !finished; i++) {
+            t = (Token) tokens.get(i);
+            if (t.getType().equals(Type.OPERAND) | t.getType().equals(Type.SEMICOLON)) {
+                parsed.add(t);
+            
+            //If a new variable is initialized add it to the "table" of known variables    
+            }else if(t.getType().equals(Type.STRING) | t.getType().equals(Type.CHARACTER) | t.getType().equals(Type.BOOLEAN) | t.getType().equals(Type.INTEGER) ){
+            	knownLiterals.add(t);
+            	parsed.add(t);
+            	
+            //If a literal is encountered check if it was initialized before(from the "table") and add it only if it was initialized 	
+            }else if(t.getType().equals(Type.LITERAL)) {
+            	boolean found = Parser.checkKnown(t);
+            	if(found == true) {
+            		parsed.add(t);
+            	}else {
+        			throw new RuntimeException("Undeclared variable -->" + Parser.extractVariableName(t));
+        		}
+            
+            //If a condition is encountered check that it is in correct form: if<cond> --> <stmt> else--> <stmt>	
+            }else if(t.getType().equals(Type.IF)){
+            	parsed.add(t);
+            	i = Parser.evaluateCondition(tokens, i);
+            	
+            }else if(t.getType().equals(Type.ELSE)) {
+            	throw new RuntimeException("'ELSE' without previous 'IF' token");
+            	
+            //If a while loop is encountered check that it is in correct form: while<cond> --> <stmt>
+            }else if(t.getType().equals(Type.WHILE)) {
+            	parsed.add(t);
+            	i = Parser.evaluateWhile(tokens, i);
+            }else if(t.getType().equals(Type.ASSIGNMENT)) {
+            	i = Parser.evaluateAssignment(tokens, i -1);
+            }else if(t.getType().equals(Type.FUNCTION_BOOLEAN) | t.getType().equals(Type.FUNCTION_CHARACTER) | t.getType().equals(Type.FUNCTION_INTEGER) | t.getType().equals(Type.FUNCTION_STRING) | t.getType().equals(Type.FUNCTION_VOID)){
+            	parsed.add(t);
+            	i = Parser.evaluateFunction(tokens, i);
+            }else if(t.getType().equals(Type.RETURN)){
+            	parsed.add(t);
+            	i = i+1;
+            	t = (Token) tokens.get(i);
+            	parsed.add(t);
+            	if(t.getType().equals(Type.LITERAL) && Parser.checkKnown(t)) {
+            		
+            		//Compare it to the function type
+            		String theReturnType = Parser.extractInitial(t).getTypeString();
+            		if(!theReturnType.equals(functionType)) {
+            			throw new RuntimeException("The return type doesn't match the function type");
+            		}
+            		
+            	}else {
+            		throw new RuntimeException("Undeclared variable in return value");
+            	}
+            	
+            }else if(t.getType().equals(Type.CLOSE)){
+            	parsed.add(t);
+            	finished = true;
+            }else if(t.getType().equals(Type.OPEN)){
+            	parsed.add(t);
+            }else if(t.getType().equals(Type.OPENBRACKET)){
+            	parsed.add(t);
+            }else if(t.getType().equals(Type.CLOSEBRACKET)){
+            	parsed.add(t);
+            }else {
+                if (!stack.isEmpty() && getPrecedence(t) <= getPrecedence(stack.peek())) {
+                	parsed.add(stack.pop());
+                }
+                stack.push(t);
+            }
+        }
+
+        while (!stack.isEmpty()) {
+        	parsed.add(stack.pop());
+        }
+    	
+        return i -1 ;
+    }
+    
     public LinkedList parse() {
         Stack<Token> stack = new Stack<Token>();  
         Token t;
@@ -521,6 +639,13 @@ static LinkedList knownLiterals = new LinkedList();
             	i = Parser.evaluateWhile(tokens, i);
             }else if(t.getType().equals(Type.ASSIGNMENT)) {
             	i = Parser.evaluateAssignment(tokens, i -1);
+            }else if(t.getType().equals(Type.FUNCTION_BOOLEAN) | t.getType().equals(Type.FUNCTION_CHARACTER) | t.getType().equals(Type.FUNCTION_INTEGER) | t.getType().equals(Type.FUNCTION_STRING) | t.getType().equals(Type.FUNCTION_VOID)){
+            	parsed.add(t);
+            	i = Parser.evaluateFunction(tokens, i);
+            }else if(t.getType().equals(Type.CLOSE)){
+            	parsed.add(t);
+            }else if(t.getType().equals(Type.OPEN)){
+            	parsed.add(t);
             }else {
                 if (!stack.isEmpty() && getPrecedence(t) <= getPrecedence(stack.peek())) {
                 	parsed.add(stack.pop());
