@@ -206,18 +206,33 @@ public class lexical_ANALyzer {
     	}
     	i=i+1;
     	
-    	//Get the evaluation of the Integer if it is not null
+    	//Get the evaluation of the Integer if it is not null and check that its structure is correct
     	boolean first=false;
     	if(nullInt == false) {
+    		
+    	String toCheck = "";
+    	int checkerIndex = i;
+    	while(expression.charAt(checkerIndex) != ';') {
+    		if(Character.isWhitespace(expression.charAt(checkerIndex))) {
+    			checkerIndex = checkerIndex + 1;
+    		}else {
+    			toCheck = toCheck +expression.charAt(checkerIndex);
+    			checkerIndex = checkerIndex + 1;
+    		}
+    	}
+    	toCheck = toCheck + ";";
+    	String grep="(^(\\-)?(\\s)*(\\d)+(\\s)*((\\+|\\-|\\/|\\*)(\\s)*(\\-)?(\\s)*(\\d)+(\\s)*)*(\\s)*(;))";
+		
+		Pattern r=Pattern.compile(grep);
+		Matcher m=r.matcher(toCheck);
+    	if(!m.find()) {
+    		throw new RuntimeException("Illegal arithmetic expression structure");
+    	}
+    		
     	while(expression.charAt(i)!= ';') {
     		if(Character.isWhitespace(expression.charAt(i))) {
     			i = i+1;
-    		}else if(expression.charAt(i) == '-' & !first) {
-    			first=true;
-    			evaluation = evaluation + expression.charAt(i);
-    			i = i+1;
-    		}else if(expression.charAt(i)-'0'>=0 & '9'-expression.charAt(i)>=0){
-    			first=true;
+    		}else {
     			evaluation = evaluation + expression.charAt(i);
     			i = i+1;
     		}
@@ -310,43 +325,82 @@ public class lexical_ANALyzer {
 
     }
     
+    private static int analyzeArithmeticExpression(String expression,int index) {
+    	int i = index;
+    	
+    	//The expression we will check using regular expressions
+    	String toCheck = expression.substring(i);
+    	
+    	//Check this regular expression
+    	String grep="(^(\\-)?(\\s)*(\\d)+(\\s)*((\\+|\\-|\\/|\\*)(\\s)*(\\-)?(\\s)*(\\d)+(\\s)*)*(\\s)*(;))";
+		
+		Pattern r=Pattern.compile(grep);
+		Matcher m=r.matcher(toCheck);
+		
+		//If the arithmetic structure is incorrect
+		if(!m.find()) {
+			throw new RuntimeException("Invalid form of arithmetic expression");
+		}else {
+			boolean finished = false;
+			while(finished == false) {
+				if(expression.charAt(i) == ';') {
+					finished = true;
+					tokens.add(new Token<>(Type.SEMICOLON, ";"));
+					i = i+1;
+				}else if(Character.isWhitespace(expression.charAt(i))){
+					i = i+1;
+				}else if(Character.isDigit(expression.charAt(i))) {
+					String operand = lexical_ANALyzer.getOperand(expression, i);
+					i=i + operand.length();
+					tokens.add(new Token<>(Type.OPERAND, operand));
+				}else {
+
+					switch(expression.charAt(i)) {
+						case '+':
+							tokens.add(new Token<>(Type.ADD, "+"));
+							i = i+1;
+							break;
+						case '-':
+							tokens.add(new Token<>(Type.SUBTRACT, "-"));
+							i = i+1;
+							break;	
+						case '*':
+							tokens.add(new Token<>(Type.MULTIPLY, "*"));
+							i = i+1;
+							break;	
+						case '/':
+							tokens.add(new Token<>(Type.DIVIDE, "/"));
+							i = i+1;
+							break;	
+					}
+				}
+			}
+			
+		}
+		
+    	
+        return i;
+    }
+    
     /**
      * Lexically analyzes the expression
      * @param expression The expression to be analyzed
      * @return A linked list of token objects
      */
     public static LinkedList<Token<Type, String>> analyze(String expression) {
+
         for(int i = 0; i < expression.length(); ) {
             char currentCharacter = expression.charAt(i);
         if(Character.isWhitespace(currentCharacter)) {
                 i++;
                 }else {
             switch(currentCharacter) {
-                case '+':
-                    tokens.add(new Token<>(Type.ADD, String.valueOf(currentCharacter)));
-                    i++;
-                    break;
-                case '-':
-                    tokens.add(new Token<>(Type.SUBTRACT, String.valueOf(currentCharacter)));
-                    i++;
-                    break;
-                case '*':
-                    tokens.add(new Token<>(Type.MULTIPLY, String.valueOf(currentCharacter)));
-                    i++;
-                    break;
                 case '/':
                 	if(expression.charAt(i+1)=='/') {
                 		i=lexical_ANALyzer.skipComment(expression, i);
                 		break;
-                	}else {
-                    tokens.add(new Token<>(Type.DIVIDE, String.valueOf(currentCharacter)));
-                    i++;
-                    break;
                 	}
-                case '%':
-                    tokens.add(new Token<>(Type.REMAINDER, String.valueOf(currentCharacter)));
-                    i++;
-                    break;
+                	throw new RuntimeException("Misplaced '/' symbol");
                 case '0':
                 case '1':
                 case '2':
@@ -357,10 +411,10 @@ public class lexical_ANALyzer {
                 case '7':
                 case '8':
                 case '9':
-                	//Get the operand and increment the counter by the operand's length to continue parsing the expression
-                    String operand = lexical_ANALyzer.getOperand(expression, i);
-                    i=i + operand.length();
-                    tokens.add(new Token<>(Type.OPERAND, operand));
+                case '-':	
+                	//Check the arithmetic expression structure and tokenise it if it is correct
+                	
+                    i = lexical_ANALyzer.analyzeArithmeticExpression(expression, i);
                     break;
                 case 'i':
                 	if(expression.charAt(i+1)=='f') {
@@ -433,6 +487,7 @@ public class lexical_ANALyzer {
                 		i = i+2;
                 		break;
                 	}else if(currentCharacter == '='){
+
                 		tokens.add(new Token<>(Type.ASSIGNMENT, "="));
                 		i = i+1;
                 	break;
